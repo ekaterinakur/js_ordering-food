@@ -7,13 +7,12 @@ const buttonDown = document.querySelector('#button-down');
 const initialState = {
   items: ['Apple', 'Bread', 'Carrot', 'Dumplings', 'Eggs', 'Fish', 'Garlic', 'Honey', 'Ice cream', 'Jam'],
   index: null,
-  currentFood: null
 };
 
-const chooseItem = currentFood => {
+const chooseItem = index => {
 	return {
 		type: 'choose_item',
-		currentFood
+		index
 	}
 };
 
@@ -40,15 +39,14 @@ function reduser(state = initialState, action) {
     case 'choose_item':
 			return {
 				...state,
-				index: state.items.indexOf(action.currentFood),
-				currentFood: action.currentFood
+				index: action.index
 			}
 		case 'move_up':
 			return {
 				...state,
 				items: state.items.map((item, index) => {
 					const prevItem = state.items[state.index - 1];
-					if (index === state.index - 1) return state.currentFood;
+					if (index === state.index - 1) return state.items[state.index];
 					if (index === state.index) return prevItem;
 					return item;
 				}),
@@ -58,8 +56,9 @@ function reduser(state = initialState, action) {
 			return {
 				...state,
 				items: state.items.map((item, index) => {
+					const currentItem = state.items[state.index];
 					if (index === state.index) return state.items[state.index + 1];
-					if (index === state.index + 1) return state.currentFood;
+					if (index === state.index + 1) return currentItem;
 					return item;
 				}),
 				index: state.index + 1
@@ -68,7 +67,6 @@ function reduser(state = initialState, action) {
 			return {
 				...state,
 				index: null,
-				currentFood: null
 			}
 		default:
 			return state;
@@ -82,18 +80,18 @@ function renderList() {
 	const lastIndex = store.getState().items.length - 1;
 	const stateIndex = store.getState().index;
 
-	store.getState().items.forEach(item => {
+	store.getState().items.forEach((item, index) => {
 		const li = document.createElement('li');
 		li.textContent = item;
 
-		li.addEventListener('click', event => {
-			store.dispatch(chooseItem(event.target.textContent));
+		li.addEventListener('click', () => {
+			store.dispatch(chooseItem(index));
 		});
 
 		container.append(li);
 	});
 
-	if (stateIndex) {
+	if (stateIndex >= 0 && stateIndex !== null) {
 		container.childNodes[stateIndex].classList.add('active');
 	}
 
@@ -118,7 +116,7 @@ document.addEventListener('click', event => {
 	}
 });
 
-buttonUp.addEventListener('click', (event) => {
+buttonUp.addEventListener('click', () => {
 	store.dispatch(moveUp());
 })
 
@@ -130,4 +128,4 @@ store.subscribe(() => {
 	renderList();
 });
 
-document.addEventListener('load', renderList());
+renderList();
